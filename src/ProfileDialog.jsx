@@ -1,0 +1,10 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+export default function ProfileDialog({ user, onSave, onClose, onLogout, signingOut }) {
+  const dialog=useRef(null);
+  const [name,setName]=useState(user.name),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
+  useEffect(()=>{dialog.current.showModal();},[]);
+  const save=async e=>{e.preventDefault();setBusy(true);setError('');setSaved(false);try{await onSave(name.trim());setSaved(true);}catch(e){setError(e.message);}finally{setBusy(false);}};
+  const close=()=>{if(!busy && !signingOut)onClose();};
+  return <dialog ref={dialog} data-cc-theme="light" className="profile-dialog" aria-labelledby="profile-title" onCancel={e=>{e.preventDefault();close();}} onClick={e=>{if(e.target===dialog.current)close();}}><div className="profile-content"><div className="profile-heading"><span className="play-eyebrow">YOUR ACCOUNT</span><button type="button" aria-label="Close profile" disabled={busy || signingOut} onClick={close}>✕</button></div><div className="profile-avatar" aria-hidden="true">{user.name[0]?.toUpperCase()}</div><h2 id="profile-title">Your profile</h2><p>Your name on the board. Make it your own.</p><form onSubmit={save}><label htmlFor="profile-name">Display name</label><input autoFocus id="profile-name" autoComplete="name" required maxLength={60} value={name} onChange={e=>{setName(e.target.value);setSaved(false);}}/><label htmlFor="profile-email">Email address</label><input id="profile-email" type="email" value={user.email} readOnly/><small>Your sign-in email</small>{error && <p className="profile-error" role="alert">{error}</p>}{saved && <p className="profile-saved" role="status">Profile updated.</p>}<button className="auth-submit" disabled={busy || signingOut || !name.trim()}>{busy ? 'Saving…' : 'Save changes'}</button></form><div className="profile-footer"><button type="button" disabled={busy || signingOut} onClick={close}>Back to chess</button><button type="button" disabled={busy || signingOut} onClick={onLogout}>{signingOut ? 'Signing out…' : 'Sign out'}</button></div></div></dialog>;
+}
